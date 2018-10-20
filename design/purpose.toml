@@ -1,6 +1,27 @@
-# project purpose and definition documentation
-
 [REQ-purpose]
 text = '''
-The purpose of this project is...
+The purpose of Modular C is to apply the module system of Modula/SML, to the
+minimal procedural programming of ANSI C
+
+In particular it would be good to experiment with its module system for generic
+and modular programming, (as opposed to using templates and OOP respectively)
+and hence learn how to use such a system.
+Additionally it would be good to see if:
+1. the lack of modularity of C code can be solved by this module system, or
+2. the lack of modularity of C code is inherent to its procedural/data oriented
+   nature, or
+3. the lack of modularity of C code can only be solved with the combination of
+   template genericity and OOP that existing languages offer
+
+Finally making C more usable without undermining its minimal nature would be a
+very compelling language for real use.
+
+At the highest level the language itself is specified within [[REQ-language]]
+
+Further our implementation has requirements specified within
+[[REQ-implementation]]
+
+This implementation along with other development tools are then used via binary
+executables described in [[REQ-executables]]
 '''
+

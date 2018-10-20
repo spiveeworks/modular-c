@@ -1,0 +1,9 @@
+[REQ-language]
+partof = 'REQ-purpose'
+text = '''
+While it is not intended for multiple implementations to exist, it is still
+useful to have an explicit language specification, independent of the
+implementation, so that the implementation can be upgraded more liberally,
+without breaking existing files.
+'''
+

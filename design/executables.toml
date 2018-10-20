@@ -1,0 +1,12 @@
+[REQ-executables]
+partof = 'REQ-purpose'
+text = '''
+The main executable will invoke the transpiler, obviously for building
+projects.
+
+Additional executables may exist though, for
+- checking semantic versioning as a kind of lint,
+- generating documentation/signatures,
+- managing packages
+- some integration/combination of the above functionality
+'''

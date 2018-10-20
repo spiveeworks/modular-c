@@ -1,0 +1,10 @@
+[REQ-implementation]
+partof = 'REQ-purpose'
+text = '''
+Modular C shall be implemented as a code base written in both modular C and
+potentially native C, transpiling itself into purely native C, to be compiled
+and used to transpile other programs.
+
+In this way Modular C is essentially just a preprocessor, but with less focus
+on text substitution, and more focus on modern, language-aware genericity.
+'''

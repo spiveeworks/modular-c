@@ -5,5 +5,50 @@ While it is not intended for multiple implementations to exist, it is still
 useful to have an explicit language specification, independent of the
 implementation, so that the implementation can be upgraded more liberally,
 without breaking existing files.
+
+The language is very straight forward:
+- inherited C functionality, described in [[REQ-c_subset]]
+- module basics, types, functions, imports [[REQ-language-items]]
+- modularity, genericity, encapsulation [[REQ-language-modularity]]
+- module subtleties, interfaces, versions [[REQ-language-versioning]]
 '''
 
+[REQ-c_subset]
+partof = 'REQ-language'
+text = '''
+Since one of the goals of Modular C is to apply the simplicity of C, it makes
+sense to adopt C as closely as possible.
+One clear exception to this is the preprocessor, in particular `#include`
+directives, since this is the feature the project attempts to address.
+
+For these reasons the language shall be be a __C superset__ excluding the
+preprocessor.
+
+Unfortunately this means inheriting a lot of outdated features such as
+under-specified integers, copy semantics, and mutability by default, but it
+does make C interop basically free.
+
+Further it makes transpiling into C a very natural implementation strategy, in
+fact modular C essentially becomes a sophisticated preprocessor
+'''
+
+[REQ-language-items]
+text = '''
+Language shall have modules, types, functions, imports
+'''
+
+[REQ-language-modularity]
+text = '''
+Language shall allow genericity and modularity through public inputs and public
+outputs
+
+Type definitions available downstream shall be declared using a more powerful
+keyword such as 'open'.
+'''
+
+[REQ-language-versioning]
+text = '''
+Language shall conform strictly to semantic versioning, so that major, minor,
+and patch changes to a module have the corresponding effects downstream, unless
+fragility is opted into downstream.
+'''

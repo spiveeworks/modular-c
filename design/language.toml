@@ -34,7 +34,27 @@ fact modular C essentially becomes a sophisticated preprocessor
 
 [REQ-language-items]
 text = '''
-Language shall have modules, types, functions, imports
+Language shall have modules, inputs, types, functions, values
+
+Modules are objects similar to C source files, except that they can be
+manipulated from within the language.
+Further they can take parameters, through "inputs"
+Modules can be bound in 3 ways:
+- In-line, using syntax identical to rust
+- as a whole source file, accessed through the `input` semantic
+- as an alias/specialization of a previously bound module
+
+Inputs are Modular C's resident import keyword, starting with the letter 'i' as
+required.
+
+There are 4 kinds of input:
+- In-line, by writing `pub input <item definition>`
+- Alias, similarly by writing `pub input <identifier> = <binding>;`
+- Source file, `[pub] input <identifier> = [<package path>.]<module name>;`
+- Empty input, `pub input <identifier>;`
+
+In cases that may be interpreted as either an alias or a source file, the alias
+is tried first.
 '''
 
 [REQ-language-modularity]

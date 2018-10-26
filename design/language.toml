@@ -7,13 +7,13 @@ implementation, so that the implementation can be upgraded more liberally,
 without breaking existing files.
 
 The language is very straight forward:
-- inherited C functionality, described in [[REQ-c_subset]]
+- inherited C functionality, described in [[REQ-c_superset]]
 - module basics, types, functions, imports [[REQ-language-items]]
 - modularity, genericity, encapsulation [[REQ-language-modularity]]
 - module subtleties, interfaces, versions [[REQ-language-versioning]]
 '''
 
-[REQ-c_subset]
+[REQ-c_superset]
 partof = 'REQ-language'
 text = '''
 Since one of the goals of Modular C is to apply the simplicity of C, it makes

@@ -8,7 +8,7 @@ without breaking existing files.
 
 The language is very straight forward:
 - inherited C functionality, described in [[REQ-c_superset]]
-- module basics, types, functions, imports [[REQ-language-items]]
+- module basics, types, functions, imports [[REQ-language-modules]]
 - modularity, genericity, encapsulation [[REQ-language-modularity]]
 - module subtleties, interfaces, versions [[REQ-language-versioning]]
 '''
@@ -32,16 +32,26 @@ Further it makes transpiling into C a very natural implementation strategy, in
 fact modular C essentially becomes a sophisticated preprocessor
 '''
 
-[REQ-language-items]
+[REQ-language-modules]
 text = '''
-Language shall have modules, inputs, types, functions, values
+The top level items of the language are among the following kinds/sorts:
+- modules
+- inputs
+- types
+- functions
+- values
 
-Modules are objects similar to C source files, except that they can be
+A module is a collection of items, defined in terms of eachother.
+Modules are modular in the sense that their inputs can be changed to change the
+behavior of other items, without directly modifying those items.
+In fact this is an explicit feature of the language:
+[[REQ-language-modularity]]
+
+Modules are similar to C source files, but offer additional ways of being
 manipulated from within the language.
-Further they can take parameters, through "inputs"
 Modules can be bound in 3 ways:
 - In-line, using syntax identical to rust
-- as a whole source file, accessed through the `input` semantic
+- as a whole source file, accessed as an `input` item
 - as an alias/specialization of a previously bound module
 
 Inputs are Modular C's resident import keyword, starting with the letter 'i' as
@@ -59,11 +69,28 @@ is tried first.
 
 [REQ-language-modularity]
 text = '''
-Language shall allow genericity and modularity through public inputs and public
-outputs
+Modules as described in [[REQ-language-modules]] are modular in the sense that
+one module can be modified in limited ways, without breaking other modules;
+this is typical of most languages, including ANSI C.
+Modular C makes this explicit, much like Modula 3, and ML, through genericity.
 
-Type definitions available downstream shall be declared using a more powerful
-keyword such as 'open'.
+When you declare items, you can make them public by preceding the line with the
+`pub` keyword.
+Public inputs behave differently to other public items: public inputs are
+generic inputs, that can be replaced downstream.
+Public 'outputs' on the other hand are just the ones that can be accessed
+downstream, as opposed to private items that are only defined as intermediate
+concepts within a module.
+
+A further level of publicity exists, analogous to defining an item entirely
+within a C header file.
+This is invoked by using the `open` keyword instead of
+`pub`.
+The main use of `open` is that it allows downstream modules to access the
+fields of a data structure.
+
+The meaning of open inputs is undecided, but may refer to inputs that can be
+treated as outputs.
 '''
 
 [REQ-language-versioning]

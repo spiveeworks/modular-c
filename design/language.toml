@@ -5,5 +5,167 @@ While it is not intended for multiple implementations to exist, it is still
 useful to have an explicit language specification, independent of the
 implementation, so that the implementation can be upgraded more liberally,
 without breaking existing files.
+
+The language is very straight forward:
+- inherited C functionality, described in [[REQ-c_superset]]
+- module basics, types, functions, imports [[REQ-language-modules]]
+- modularity, genericity, encapsulation [[REQ-language-modularity]]
+- data types, struct keyword [[REQ-language-struct]]
+- module subtleties, interfaces, versions [[REQ-language-versioning]]
 '''
 
+[REQ-c_superset]
+partof = 'REQ-language'
+text = '''
+Since one of the goals of Modular C is to apply the simplicity of C, it makes
+sense to adopt C as closely as possible.
+One clear exception to this is the preprocessor, in particular `#include`
+directives, since this is the feature the project attempts to address.
+
+For these reasons the language shall be be a __C superset__ excluding the
+preprocessor.
+
+Unfortunately this means inheriting a lot of outdated features such as
+under-specified integers, copy semantics, and mutability by default, but it
+does make C interop basically free.
+
+Further it makes transpiling into C a very natural implementation strategy, in
+fact modular C essentially becomes a sophisticated preprocessor
+'''
+
+[REQ-language-modules]
+text = '''
+The top level items of the language are among the following kinds/sorts:
+- modules
+- inputs
+- types
+- functions
+- values
+
+A module is a collection of items, defined in terms of eachother.
+Modules are modular in the sense that their inputs can be changed to change the
+behavior of other items, without directly modifying those items.
+In fact this is an explicit feature of the language:
+[[REQ-language-modularity]]
+
+Modules are similar to C source files, but offer additional ways of being
+manipulated from within the language.
+Modules can be bound in 3 ways:
+- In-line, using syntax identical to rust
+- as a whole source file, accessed as an `input` item
+- as an alias/specialization of a previously bound module
+
+Inputs are Modular C's resident import keyword, starting with the letter 'i' as
+required.
+
+There are 4 kinds of input:
+- In-line, by writing `pub input <item definition>`
+- Alias, similarly by writing `pub input <identifier> = <binding>;`
+- Source file, `[pub] input <identifier> = [<package path>.]<module name>;`
+- Empty input, `pub input <identifier>;`
+
+In cases that may be interpreted as either an alias or a source file, the alias
+is tried first.
+'''
+
+[REQ-language-modularity]
+text = '''
+Modules as described in [[REQ-language-modules]] are modular in the sense that
+one module can be modified in limited ways, without breaking other modules;
+this is typical of most languages, including ANSI C.
+Modular C makes this explicit, much like Modula 3, and ML, through genericity.
+
+When you declare items, you can make them public by preceding the line with the
+`pub` keyword.
+Public inputs behave differently to other public items: public inputs are
+generic inputs, that can be replaced downstream.
+Public 'outputs' on the other hand are just the ones that can be accessed
+downstream, as opposed to private items that are only defined as intermediate
+concepts within a module.
+
+A further level of publicity exists, analogous to defining an item entirely
+within a C header file.
+This is invoked by using the `open` keyword instead of
+`pub`.
+The main use of `open` is that it allows downstream modules to access the
+fields of a data structure.
+
+The meaning of open inputs is undecided, but may refer to inputs that can be
+treated as outputs.
+'''
+
+[REQ-language-struct]
+text = '''
+Data types exist in ANSI C of course, but modular C adds some additional rules
+and flexibilities.
+
+first of all data structures do not require the word `struct` outside of the
+declaration of the type itself, just as in C++.
+
+Types are declared using the struct keyword, but in addition to being simply
+declared, they can be assigned:
+```
+struct X { int x };
+struct Y = X;
+struct Z = struct { float y };
+```
+This is like using typedef to alias the types, as if:
+```
+typedef X Y;
+typedef struct { float y } Z;
+```
+but these struct aliases interact with the `pub` and `open` keywords, (these are
+described in [[REQ-language-modularity]]) which makes it simple to pass types
+around between modules.
+
+
+Struct sizes will also be public, but not consistent, so that structs can be
+nested inside eachother without having access to the struct's fields, and
+without restricting those fields.
+
+
+Additionally it may be nice to have field reordering available, so that highly
+modular data structures dont end up being over-padded.
+'''
+
+[REQ-language-versioning]
+text = '''
+Language shall conform strictly to semantic versioning, so that major, minor,
+and patch changes to a module have the corresponding effects downstream, unless
+fragility is opted into downstream.
+
+
+Modules have signatures, but when modules are declared, their signature is
+normally implicit:
+```
+mod X { pub struct X { int x } }
+mod { struct X } X = mod { pub struct X { int x } }
+```
+
+note that the signature of a module is based on its pub and open items, but
+these are not distinguished in the signature.
+
+Full signatures are required for empty module inputs.
+
+Signatures can be declared on their own using the `kind` keyword:
+```
+kind kX { struct X }
+kX X { pub struct X { int x } }
+```
+kinds are always open or private, but are never included in module signatures.
+
+
+Module signatures have a "subkind" relation:
+a kind A is a subkind of a kind B iff every item in B is in A with either the
+same definition or a more general definition, and every input of A is an input
+of B with either the same definition or a more general definition
+
+an item declaration A has a more general defintion than an item declaration B
+if A and B are modules whose kinds observe the subkind relation defined above
+
+
+Modules can have semantic versions, but their kinds must observe rules
+corresponding to the rules of semantic versioning:
+X.(Y+1) < X.Y		unless X = 0
+X.Y.(Z+1) = X.Y.Z	unless X = 0
+'''

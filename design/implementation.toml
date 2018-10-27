@@ -7,4 +7,34 @@ and used to transpile other programs.
 
 In this way Modular C is essentially just a preprocessor, but with less focus
 on text substitution, and more focus on modern, language-aware genericity.
+
+
+One benefit of transpiling into C is easy interop _with_ C.
+This can go in both directions, since codes written in C and modular C can both
+invoke eachother.
+To this end both forms of interop should be intuitive to use.
+'''
+
+[REQ-implementation-modules]
+text = '''
+As described in [[REQ-language-modules]], modules are basically C source files.
+As described in [[REQ-implementation]], interop should be intuitive
+Compiling modules into individual source files allows for intuitive interop,
+since C files can then be treated as precompiled modular files.
+
+In [[REQ-language-modularity]] the concepts of private, public, and open are
+defined; these correspond directly to existing C techniques:
+- private terms are defined in the source file
+- public terms are declared in the header file and defined in the source file
+- open terms are defined solely in the header file
+this is therefore how these concepts should be treated in transpilation.
+
+one exception to this is structs, which should always be treated as if they are
+open in this regard; this way structs don't need to be hidden behind pointers
+for no reason.
+
+That said having structs with truly private fields would be useful for making
+fully compiled libraries/objects, and conversely having modules with no hidden
+functionality would be useful for ad-hoc usage of modular code.
+These features may be added in the future as opt-in pragmas/arguments.
 '''

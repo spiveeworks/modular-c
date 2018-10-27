@@ -10,6 +10,7 @@ The language is very straight forward:
 - inherited C functionality, described in [[REQ-c_superset]]
 - module basics, types, functions, imports [[REQ-language-modules]]
 - modularity, genericity, encapsulation [[REQ-language-modularity]]
+- data types, struct keyword [[REQ-language-struct]]
 - module subtleties, interfaces, versions [[REQ-language-versioning]]
 '''
 
@@ -91,6 +92,37 @@ fields of a data structure.
 
 The meaning of open inputs is undecided, but may refer to inputs that can be
 treated as outputs.
+'''
+
+[REQ-language-struct]
+text = '''
+Data types exist in ANSI C of course, but modular C adds some additional rules
+and flexibilities.
+
+Types are declared using the struct keyword, but in addition to being simply
+declared, they can be assigned:
+```
+struct X { int x };
+struct Y = X;
+struct Z = struct { float y };
+```
+This is like using typedef to alias the types, as if:
+```
+typedef X Y;
+typedef struct { float y } Z;
+```
+but these struct aliases interact with the `pub` and `open` keywords, (these are
+described in [[REQ-language-modularity]]) which makes it simple to pass types
+around between modules.
+
+
+Struct sizes will also be public, but not consistent, so that structs can be
+nested inside eachother without having access to the struct's fields, and
+without restricting those fields.
+
+
+Additionally it may be nice to have field reordering available, so that highly
+modular data structures dont end up being over-padded.
 '''
 
 [REQ-language-versioning]

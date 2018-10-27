@@ -99,6 +99,9 @@ text = '''
 Data types exist in ANSI C of course, but modular C adds some additional rules
 and flexibilities.
 
+first of all data structures do not require the word `struct` outside of the
+declaration of the type itself, just as in C++.
+
 Types are declared using the struct keyword, but in addition to being simply
 declared, they can be assigned:
 ```
@@ -130,4 +133,39 @@ text = '''
 Language shall conform strictly to semantic versioning, so that major, minor,
 and patch changes to a module have the corresponding effects downstream, unless
 fragility is opted into downstream.
+
+
+Modules have signatures, but when modules are declared, their signature is
+normally implicit:
+```
+mod X { pub struct X { int x } }
+mod { struct X } X = mod { pub struct X { int x } }
+```
+
+note that the signature of a module is based on its pub and open items, but
+these are not distinguished in the signature.
+
+Full signatures are required for empty module inputs.
+
+Signatures can be declared on their own using the `kind` keyword:
+```
+kind kX { struct X }
+kX X { pub struct X { int x } }
+```
+kinds are always open or private, but are never included in module signatures.
+
+
+Module signatures have a "subkind" relation:
+a kind A is a subkind of a kind B iff every item in B is in A with either the
+same definition or a more general definition, and every input of A is an input
+of B with either the same definition or a more general definition
+
+an item declaration A has a more general defintion than an item declaration B
+if A and B are modules whose kinds observe the subkind relation defined above
+
+
+Modules can have semantic versions, but their kinds must observe rules
+corresponding to the rules of semantic versioning:
+X.(Y+1) < X.Y		unless X = 0
+X.Y.(Z+1) = X.Y.Z	unless X = 0
 '''

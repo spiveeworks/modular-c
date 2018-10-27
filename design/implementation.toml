@@ -38,3 +38,20 @@ fully compiled libraries/objects, and conversely having modules with no hidden
 functionality would be useful for ad-hoc usage of modular code.
 These features may be added in the future as opt-in pragmas/arguments.
 '''
+
+[REQ-implementation-bootstrap]
+text = '''
+As is standard for self hosting transpilers, programs can be translated into
+the tartget language, and then distributed from there, to be installed using
+preexisting means.
+In particular the transpiler itself can be bootstrapped by acquiring these
+intermediates, after which the original source files can be used for future
+upgrades.
+
+The other aspect of bootstrapping is making the original binary, before
+cross-compiling is possible.
+For this purpose it seems natural to write a bootstrap in C.
+Then since C interop is meant to be strong, these source files could be
+individually 'decompiled' into modular C files.
+In fact this would mainly mean replacing headers with pub/open decorators.
+'''

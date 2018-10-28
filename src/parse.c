@@ -32,6 +32,31 @@ ParseTable initialize_parse_table() {
 	return parse_table;
 }
 
+typedef struct {
+	int token_num;
+	int *tokens;
+	char *token_data;
+} TokenResult;
+
+TokenResult tokenize(TokenDef *utokens, char *input, int input_len) {
+	int *tokens = (int*) malloc(sizeof(int) * input_len);
+	char *token_data = (char*) malloc(sizeof(char) * input_len);
+	int offset = 0;
+	int token_num = 0;
+	// int token_data_offset = 0;
+
+	while (offset < input_len) {
+		for (int ti = 0; ti < utoken_num; ti++) {
+		}
+	}
+
+	TokenResult result;
+	result.token_num = token_num;
+	result.tokens = tokens;
+	result.token_data = token_data;
+	return result;
+}
+
 int main() {
 	Rule *rules = initialize_rules();
 	TokenDef *utokens = initialize_utokens();

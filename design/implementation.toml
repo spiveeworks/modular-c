@@ -7,4 +7,76 @@ and used to transpile other programs.
 
 In this way Modular C is essentially just a preprocessor, but with less focus
 on text substitution, and more focus on modern, language-aware genericity.
+
+
+One benefit of transpiling into C is easy interop _with_ C.
+This can go in both directions, since codes written in C and modular C can both
+invoke eachother.
+To this end both forms of interop should be intuitive to use.
+'''
+
+[REQ-implementation-modules]
+text = '''
+As described in [[REQ-language-modules]], modules are basically C source files.
+As described in [[REQ-implementation]], interop should be intuitive
+Compiling modules into individual source files allows for intuitive interop,
+since C files can then be treated as precompiled modular files.
+
+In [[REQ-language-modularity]] the concepts of private, public, and open are
+defined; these correspond directly to existing C techniques:
+- private terms are defined in the source file
+- public terms are declared in the header file and defined in the source file
+- open terms are defined solely in the header file
+this is therefore how these concepts should be treated in transpilation.
+
+one exception to this is structs, which should always be treated as if they are
+open in this regard; this way structs don't need to be hidden behind pointers
+for no reason.
+
+That said having structs with truly private fields would be useful for making
+fully compiled libraries/objects, and conversely having modules with no hidden
+functionality would be useful for ad-hoc usage of modular code.
+These features may be added in the future as opt-in pragmas/arguments.
+'''
+
+[REQ-implementation-bootstrap]
+text = '''
+As is standard for self hosting transpilers, programs can be translated into
+the tartget language, and then distributed from there, to be installed using
+preexisting means.
+In particular the transpiler itself can be bootstrapped by acquiring these
+intermediates, after which the original source files can be used for future
+upgrades.
+
+The other aspect of bootstrapping is making the original binary, before
+cross-compiling is possible.
+For this purpose it seems natural to write a bootstrap in C.
+Then since C interop is meant to be strong, these source files could be
+individually 'decompiled' into modular C files.
+In fact this would mainly mean replacing headers with pub/open decorators.
+'''
+
+[SPC-parsing]
+partof = 'REQ-implementation'
+text = '''
+The implementation shall process files that follow the language spec defined in
+[[REQ-language]], and generate ANSI C source files.
+
+This has three basic components:
+- parse modc source files into AST
+- convert modc AST into C AST
+- generate C source files from ASTs
+
+The first part of parsing is of course tokenization.
+Valid tokens would be the same as ANSI C tokens, with only a few additions.
+
+The AST will be a fairly straight-forward algebraic data type:
+module = name, items
+item = C struct | C function | ...
+C struct = qualifiers, name, fields
+field = type, identifier
+...
+
+The parser will be an LL(1) parser, and will parse according to a grammar with
+the same structure as the AST.
 '''

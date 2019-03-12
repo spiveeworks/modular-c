@@ -299,3 +299,72 @@ usable alternative/addon to C.]
 [oh hey maybe the lang should be called %c? tho that seems like a printf
 thing.]
 '''
+
+[REQ-language-primary]
+text = '''
+Just as Agda uses its `instance` system to imitate haskell typeclasses, %c
+generics will have a concept of `primary` items that do not need to be
+specified explicitly.
+
+```
+kind type_ctor = mod {
+    input type T;
+    type Self;
+};
+generic(type_ctor F)
+kind Functor = mod {
+    input type T1;
+    input type T2;
+    F(T2) map(T2 (*f)(T1), F(T1));
+}
+
+generic(type T)
+struct Pair {
+    T x;
+    T y;
+};
+
+primary Functor(Pair) {
+    generic(type T1, type T2)
+    Pair(T2) map(T2 (*f)(T1), Pair(T1) ins) {
+        Pair(T2) result;
+        result.x = f(ins.x);
+        result.y = f(ins.y);
+    }
+}
+
+generic(type T)
+kind doubleable {
+    T double(T);
+}
+
+generic(
+    type_ctor F, Functor(F) map = primary,
+    type T, doubleable(T) double = primary,
+)
+F(T) double_each(F(T) in) {
+    return map(double, in);
+}
+
+primary doubleable(int) {
+    int double(int x) {
+        return 2 * x;
+    }
+}
+
+int main() {
+    Pair(int) ones;
+    ones.x = 1;
+    ones.y = 1;
+    // maybe the Pair and int could be inferred as well?
+    // how would we tell that double_each(ones) is an expression
+    // and not a module
+    Pair(int)twos = double_each(Pair, int)(ones);
+}
+```
+
+on the other hand you could just have a duck-typing style system where
+`primary` is just a convention, and you can default your modules to any name.
+incidentally that's how I've written it here, I meant to write
+`primary doubleablt(int) doubleint {...}`
+'''

@@ -169,3 +169,133 @@ corresponding to the rules of semantic versioning:
 X.(Y+1) < X.Y		unless X = 0
 X.Y.(Z+1) = X.Y.Z	unless X = 0
 '''
+
+[REQ-language-self]
+text = '''
+In Modular C many modules have only a single public item, mainly so that that
+item can be generic over the inputs of the module.
+
+A number of language features can follow from this to make this idiom more
+convenient.
+
+The most obvious and the easiest to implement is the generic keyword.
+
+Preceding an item with `generic(X A, Y B, Z C...)` will simply wrap the
+following item in a module with the same name as the item, and all of the
+inputs specified.
+
+Preceding a module with generic might be a special case depending on how useful
+it seems.
+If this is so then generic before a module would just add public inputs to the
+following module.
+If you want to actually wrap a module in another module you would need to do
+the following:
+```
+generic(type X)
+mod M {
+    mod M {
+        void in(X x) {}
+    }
+}
+```
+
+This exception may make metaprogramming less consistent, but metaprogramming
+with syntax sugar probably isn't the best idea anyway.
+
+
+In any case this `generic` syntax leads itself naturally to the next feature:
+`self` items.
+
+If a module contains one or more items with the same name as the module itself,
+then they are interchangeable with the module itself.
+```
+generic(type T)
+struct Vec {
+    size_t len;
+    size_t cap;
+    T *vals;
+};
+
+// Vec is actually a generic module, but Vec(int) is interchangeable with
+// Vec(int).Vec which is the type we are interested in.
+int sum(Vec(int) vals) {
+    int result = 0;
+    for (int i = 0; i < vals->len; i++)
+        result += vals->vals[i];
+    return result;
+}
+```
+Clearly this is very important when dealing with generics, as a user one can
+forget that generics are modules at all, but as a language implementor one can
+forget that structs or functions need be generic at all.
+
+This also allows one to define functions in the namespace of a type, or even
+types in the namespace of a function etc.
+
+Further it would allow one to define a function and type in the same module,
+like constructors in C++ or java:
+
+```
+mod Data {
+    struct Data {
+        size_t num_bytes;
+        unsigned char *bytes;
+    }
+
+    Data Data(size_t num_bytes, int (*f)(int) {
+        Data result;
+        result.num_bytes = num_bytes;
+        result.bytes = (unsigned char*)malloc(num_bytes);
+        if (!result.bytes)
+            oom();
+        for (int i = 0; i < num_bytes; i++)
+            result.bytes[i] = f(i);
+        return result;
+    }
+}
+
+int square(int x) {
+    return x * x;
+}
+
+// module as its self type
+Data squares(int num) {
+    // module as its self function
+    return Data(num, square);
+}
+```
+
+
+One complication of having this feature is that renaming a module may or may
+not rename these self items.
+
+When assigning to a module with a specified signature or passed as an input for
+a generic module, the self items can be renamed and/or kept the same as
+needed.
+In effect this is a special kind of subtype relation, and ideally it would
+interact with the subtype relation.
+
+```
+mod Foo {
+    pub struct Foo {};
+}
+mod Generic {
+    pub input mod { type Foo; type Bar; } Bar;
+    pub void foobar(Foo x, Bar y) {}
+}
+
+// Foo has one public type that gets renamed and used as two
+mod Concrete = Generic [ Bar <- Foo ];
+```
+
+[Suddenly realizing that I've forgotten to specify which items are pub, too
+much agda code.]
+[also am i going to use [Var <- arg] syntax or (arg, arg) syntax? the former
+was when i was more interested in the import/parameter conflation at the core
+of this design, than the actual usability of the language.
+The (arg, arg) syntax is specifically what rekindled my interest in modc in the
+sense of realizing that with a couple sugars the language could be a really
+usable alternative/addon to C.]
+[oh hey maybe the lang should be called %c? tho that seems like a printf
+thing.]
+'''

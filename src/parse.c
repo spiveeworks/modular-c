@@ -7,7 +7,10 @@ int utoken_num = 0,
 
 #define TOKEN_WIDTH 16
 
-typedef char TokenDef[TOKEN_WIDTH];
+typedef struct {
+	bool is_keyword;
+	char str[TOKEN_WIDTH];
+} TokenDef;
 
 typedef struct {
 	int token_num;
@@ -74,27 +77,41 @@ int prefix_whitespace(const char *input) {
 	return result;
 }
 
-int prefix_token(const char *input, const char *utoken) {
+bool is_alphanum(char c) {
+	return
+		'0' <= c || c <= '9' ||
+		'A' <= c || c <= 'Z' ||
+		'a' <= c || c <= 'z' ||
+		c == '_';
+}
+
+int prefix_token(const char *input, TokenDef *utoken) {
+	char *str = utoken->str;
+	bool is_keyword = utoken->is_keyword;
 	int i = 0;
-	while (input[i] != '\0' && utoken[i] != '\0') {
-		if (input[i] == '\0' || input[i] != utoken[i]) {
+	while (input[i] != '\0' && str[i] != '\0') {
+		if (input[i] == '\0' || input[i] != str[i]) {
 			return 0;
 		}
+	}
+	if(is_keyword && is_alphanum(input[i])) {
+		// keywords must be followed by whitespace or an operator
+		// in order to tokenize
+		return 0;
 	}
 	return i;
 }
 
 substr next_token(char *input) {
 	substr result;
-	result.len = 0;
+	// default to 1 so that tokenizer always moves forward
+	// really we should report an error when we reach an unknown operator
+	result.len = 1;
 	result.start = input;
 	bool valid = true;
 	while (valid) {
 		char c = input[result.len];
-		valid =
-			'0' <= c || c <= '9' ||
-			'A' <= c || c <= 'Z' ||
-			'a' <= c || c <= 'z';
+		valid = is_alphanum(c);
 		if (valid) {
 			result.len++;
 		}
@@ -116,7 +133,7 @@ TokenTree tokenize_flat(TokenDef *utokens, char *input, int input_len) {
 		input = input + prefix_whitespace(input);
 		int variant = -1;
 		for (int ti = 0; ti < utoken_num; ti++) {
-			int len = prefix_token(input, utokens[ti]);
+			int len = prefix_token(input, &utokens[ti]);
 			if (len) {
 				variant = ti;
 				input += len;

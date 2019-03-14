@@ -1,7 +1,9 @@
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-int utoken_num = 0,
+int utoken_num = 8,
 	nt_num = 0,
 	rule_num = 0;
 
@@ -26,6 +28,22 @@ Rule *initialize_rules() {
 
 TokenDef *initialize_utokens() {
 	TokenDef *utokens = (TokenDef *) malloc(sizeof(TokenDef) * utoken_num);
+	strcpy(utokens[0].str, "{");
+	utokens[0].is_keyword = false;
+	strcpy(utokens[1].str, "(");
+	utokens[1].is_keyword = false;
+	strcpy(utokens[2].str, "[");
+	utokens[2].is_keyword = false;
+	strcpy(utokens[3].str, "}");
+	utokens[3].is_keyword = false;
+	strcpy(utokens[4].str, ")");
+	utokens[4].is_keyword = false;
+	strcpy(utokens[5].str, "]");
+	utokens[5].is_keyword = false;
+	strcpy(utokens[6].str, ";");
+	utokens[6].is_keyword = false;
+	strcpy(utokens[7].str, "struct");
+	utokens[7].is_keyword = true;
 	return utokens;
 }
 
@@ -79,9 +97,9 @@ int prefix_whitespace(const char *input) {
 
 bool is_alphanum(char c) {
 	return
-		'0' <= c || c <= '9' ||
-		'A' <= c || c <= 'Z' ||
-		'a' <= c || c <= 'z' ||
+		('0' <= c && c <= '9') ||
+		('A' <= c && c <= 'Z') ||
+		('a' <= c && c <= 'z') ||
 		c == '_';
 }
 
@@ -93,6 +111,7 @@ int prefix_token(const char *input, TokenDef *utoken) {
 		if (input[i] == '\0' || input[i] != str[i]) {
 			return 0;
 		}
+		i++;
 	}
 	if(is_keyword && is_alphanum(input[i])) {
 		// keywords must be followed by whitespace or an operator
@@ -137,6 +156,7 @@ TokenTree tokenize_flat(TokenDef *utokens, char *input, int input_len) {
 			if (len) {
 				variant = ti;
 				input += len;
+				break;
 			}
 		}
 
@@ -145,9 +165,13 @@ TokenTree tokenize_flat(TokenDef *utokens, char *input, int input_len) {
 
 		branch->variant = variant;
 		if (variant == -1) {
-			branch->data.substr = next_token(input);
+			substr substr = next_token(input);
+			branch->data.substr = substr;
+			input += substr.len;
+		} else {
+			// so that when we recursively destroy tt, we don't free garbage
+			branch->data.subtree.branches = NULL;
 		}
-		input++;
 	}
 
 	return result;
@@ -200,5 +224,43 @@ void parse() {
 	free(rules);
 }
 
+TokenTree group_tokens_from(TokenTree ts) {
+	TokenBranch *start = ts.branches;
+	TokenBranch *end = start + ts.branch_num;
+	groupResult tt = group_tokens(start, end, -2);
+	return tt.tt;
+}
+
+void destroy_tt(TokenTree tt) {
+
+}
+
 int main() {
+	TokenDef *utokens = initialize_utokens();
+	char *input = "struct point{int x;int y;};";
+	int len = strlen(input);
+	printf("Tokenizing...\n");
+	TokenTree ts = tokenize_flat(utokens, input, len);
+	int variants[11] = { 7, -1, 0, -1, -1, 6, -1, -1, 6, 3, 6 };
+	if (ts.branch_num != 11) {
+		printf("Wrong number of tokens: num == %d != 11\n", ts.branch_num);
+	} else {
+		for (int i = 0; i < 11; i++) {
+			int actual = ts.branches[i].variant;
+			if (actual != variants[i]) {
+				printf("Wrong variant: expected[%d] != %d\n", i, actual);
+			}
+		}
+	}
+	printf("Grouping...\n");
+	TokenTree tt = group_tokens_from(ts);
+
+	int actual = tt.branches[2].data.subtree.branch_num;
+	if (actual != 6) {
+		printf("Wrong subtree size: branches[2].num == %d != 6\n", actual);
+	}
+
+	destroy_tt(ts);
+	destroy_tt(tt);
+	free(utokens);
 }

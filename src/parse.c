@@ -26,24 +26,43 @@ Rule *initialize_rules() {
 	return rules;
 }
 
+bool is_alphanum(char c) {
+	return
+		('0' <= c && c <= '9') ||
+		('A' <= c && c <= 'Z') ||
+		('a' <= c && c <= 'z') ||
+		c == '_';
+}
+
+TokenDef token_def(char *str) {
+	TokenDef result;
+	int len = strlen(str);
+	if (len > TOKEN_WIDTH - 1) {
+		printf(
+			"ERROR keyword \"%s\" is too long. Change TOKEN_WIDTH to %d\n",
+			str,
+			len + 1
+		);
+	}
+	for (int i = 0; i < len; i++) {
+		result.str[i] = str[i];
+	}
+	result.is_keyword = is_alphanum(result.str[len - 1]);
+	result.str[len] = '\0';
+
+	return result;
+}
+
 TokenDef *initialize_utokens() {
 	TokenDef *utokens = (TokenDef *) malloc(sizeof(TokenDef) * utoken_num);
-	strcpy(utokens[0].str, "{");
-	utokens[0].is_keyword = false;
-	strcpy(utokens[1].str, "(");
-	utokens[1].is_keyword = false;
-	strcpy(utokens[2].str, "[");
-	utokens[2].is_keyword = false;
-	strcpy(utokens[3].str, "}");
-	utokens[3].is_keyword = false;
-	strcpy(utokens[4].str, ")");
-	utokens[4].is_keyword = false;
-	strcpy(utokens[5].str, "]");
-	utokens[5].is_keyword = false;
-	strcpy(utokens[6].str, ";");
-	utokens[6].is_keyword = false;
-	strcpy(utokens[7].str, "struct");
-	utokens[7].is_keyword = true;
+	utokens[0] = token_def("{");
+	utokens[1] = token_def("(");
+	utokens[2] = token_def("[");
+	utokens[3] = token_def("}");
+	utokens[4] = token_def(")");
+	utokens[5] = token_def("]");
+	utokens[6] = token_def(";");
+	utokens[7] = token_def("struct");
 	return utokens;
 }
 
@@ -95,14 +114,6 @@ int prefix_whitespace(const char *input) {
 	return result;
 }
 
-bool is_alphanum(char c) {
-	return
-		('0' <= c && c <= '9') ||
-		('A' <= c && c <= 'Z') ||
-		('a' <= c && c <= 'z') ||
-		c == '_';
-}
-
 int prefix_token(const char *input, TokenDef *utoken) {
 	char *str = utoken->str;
 	bool is_keyword = utoken->is_keyword;
@@ -138,15 +149,34 @@ substr next_token(char *input) {
 	return result;
 }
 
+TokenTree new_tree(int max_branches) {
+	TokenTree result;
+	result.branch_num = 0;
+	result.branches = NULL;
+
+	if (max_branches > 0) {
+		result.branches =
+			(TokenBranch*) malloc(sizeof(TokenBranch) * max_branches);
+		for (int i = 0; i < max_branches; i++) {
+			// we don't actually need to initialize anything but num
+			// we can set num later when we change variant to >0
+			// we do this instead to satisfy linters
+			TokenBranch* out = &result.branches[i];
+			out->variant = -2;
+			out->data.subtree.branch_num = 0;
+			out->data.subtree.branches = NULL;
+		}
+	}
+
+	return result;
+}
+
 // borrows utokens during function
 // borrows input for lifetime of result
 TokenTree tokenize_flat(TokenDef *utokens, char *input, int input_len) {
 	char *end = input + input_len;
 
-	TokenTree result;
-	result.branches =
-		(TokenBranch*) malloc(sizeof(TokenBranch) * input_len);
-	result.branch_num = 0;
+	TokenTree result = new_tree(input_len);
 
 	while (input < end) {
 		input = input + prefix_whitespace(input);
@@ -183,10 +213,7 @@ typedef struct {
 } groupResult;
 
 groupResult group_tokens(TokenBranch *remaining, TokenBranch *end, int close) {
-	TokenTree tt;
-	tt.branch_num = 0;
-	tt.branches =
-		(TokenBranch*)malloc(sizeof(TokenBranch) * (end - remaining));
+	TokenTree tt = new_tree(end - remaining);
 	TokenBranch *out = tt.branches;
 	int variant;
 	while (remaining < end) {
@@ -232,7 +259,12 @@ TokenTree group_tokens_from(TokenTree ts) {
 }
 
 void destroy_tt(TokenTree tt) {
-
+	for (int i = 0; i < tt.branch_num; i++) {
+		TokenBranch *branch = &tt.branches[i];
+		if (branch->variant != -1) {
+			destroy_tt(branch->data.subtree);
+		}
+	}
 }
 
 int main() {

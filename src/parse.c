@@ -3,28 +3,27 @@
 #include <stdlib.h>
 #include <string.h>
 
-int utoken_num = 8,
-	nt_num = 0,
-	rule_num = 0;
-
 #define TOKEN_WIDTH 16
 
 typedef struct {
-	bool is_keyword;
 	char str[TOKEN_WIDTH];
+	bool is_keyword;
 } TokenDef;
 
-typedef struct {
-	int token_num;
-	int *tokens;
-} Rule;
+// value size_t UTOKEN_NUM = 8
+#define UTOKEN_NUM 8
 
-typedef int *ParseTable;
-
-Rule *initialize_rules() {
-	Rule *rules = (Rule *) malloc(sizeof(Rule) * rule_num);
-	return rules;
-}
+// value TokenDef utokens[UTOKEN_NUM] = 
+TokenDef utokens[UTOKEN_NUM] = {
+	{"{", false},
+	{"(", false},
+	{"[", false},
+	{"}", false},
+	{")", false},
+	{"]", false},
+	{";", false},
+	{"struct", true},
+};
 
 bool is_alphanum(char c) {
 	return
@@ -32,45 +31,6 @@ bool is_alphanum(char c) {
 		('A' <= c && c <= 'Z') ||
 		('a' <= c && c <= 'z') ||
 		c == '_';
-}
-
-TokenDef token_def(char *str) {
-	TokenDef result;
-	int len = strlen(str);
-	if (len > TOKEN_WIDTH - 1) {
-		printf(
-			"ERROR keyword \"%s\" is too long. Change TOKEN_WIDTH to %d\n",
-			str,
-			len + 1
-		);
-	}
-	for (int i = 0; i < len; i++) {
-		result.str[i] = str[i];
-	}
-	result.is_keyword = is_alphanum(result.str[len - 1]);
-	result.str[len] = '\0';
-
-	return result;
-}
-
-TokenDef *initialize_utokens() {
-	TokenDef *utokens = (TokenDef *) malloc(sizeof(TokenDef) * utoken_num);
-	utokens[0] = token_def("{");
-	utokens[1] = token_def("(");
-	utokens[2] = token_def("[");
-	utokens[3] = token_def("}");
-	utokens[4] = token_def(")");
-	utokens[5] = token_def("]");
-	utokens[6] = token_def(";");
-	utokens[7] = token_def("struct");
-	return utokens;
-}
-
-ParseTable initialize_parse_table() {
-	ParseTable parse_table;
-	int size = sizeof(*parse_table) * nt_num * rule_num;
-	parse_table = (ParseTable)malloc(size);
-	return parse_table;
 }
 
 typedef struct {
@@ -173,7 +133,7 @@ TokenTree new_tree(int max_branches) {
 
 // borrows utokens during function
 // borrows input for lifetime of result
-TokenTree tokenize_flat(TokenDef *utokens, char *input, int input_len) {
+TokenTree tokenize_flat(char *input, int input_len) {
 	char *end = input + input_len;
 
 	TokenTree result = new_tree(input_len);
@@ -181,7 +141,7 @@ TokenTree tokenize_flat(TokenDef *utokens, char *input, int input_len) {
 	while (input < end) {
 		input = input + prefix_whitespace(input);
 		int variant = -1;
-		for (int ti = 0; ti < utoken_num; ti++) {
+		for (int ti = 0; ti < UTOKEN_NUM; ti++) {
 			int len = prefix_token(input, &utokens[ti]);
 			if (len) {
 				variant = ti;
@@ -241,16 +201,6 @@ groupResult group_tokens(TokenBranch *remaining, TokenBranch *end, int close) {
 	return result;
 }
 
-void parse() {
-	Rule *rules = initialize_rules();
-	TokenDef *utokens = initialize_utokens();
-	ParseTable parse_table = initialize_parse_table();
-
-	free(parse_table);
-	free(utokens);
-	free(rules);
-}
-
 TokenTree group_tokens_from(TokenTree ts) {
 	TokenBranch *start = ts.branches;
 	TokenBranch *end = start + ts.branch_num;
@@ -268,11 +218,10 @@ void destroy_tt(TokenTree tt) {
 }
 
 int main() {
-	TokenDef *utokens = initialize_utokens();
 	char *input = "struct point{int x;int y;};";
 	int len = strlen(input);
 	printf("Tokenizing...\n");
-	TokenTree ts = tokenize_flat(utokens, input, len);
+	TokenTree ts = tokenize_flat(input, len);
 	int variants[11] = { 7, -1, 0, -1, -1, 6, -1, -1, 6, 3, 6 };
 	if (ts.branch_num != 11) {
 		printf("Wrong number of tokens: num == %d != 11\n", ts.branch_num);
@@ -294,5 +243,4 @@ int main() {
 
 	destroy_tt(ts);
 	destroy_tt(tt);
-	free(utokens);
 }

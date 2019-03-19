@@ -10,8 +10,25 @@ typedef struct {
 	bool is_keyword;
 } TokenDef;
 
-// value size_t UTOKEN_NUM = 8
-#define UTOKEN_NUM 8
+typedef enum {
+	ALPHANUM = -1,
+	OPEN_BRACE,
+	OPEN_PAREN,
+	OPEN_BRACK,
+	CLOSE_BRACE,
+	CLOSE_PAREN,
+	CLOSE_BRACK,
+	SEMICOLON,
+	STRUCT,
+
+	// number of possible tokens, not to be used as a variant...
+	UTOKEN_NUM,
+} TokenVariant;
+
+#define FIRST_OPEN OPEN_BRACE
+#define LAST_OPEN OPEN_BRACK
+
+#define TOTAL_OPENS (LAST_OPEN - FIRST_OPEN)
 
 // value TokenDef utokens[UTOKEN_NUM] = 
 TokenDef utokens[UTOKEN_NUM] = {
@@ -53,7 +70,7 @@ typedef struct {
 } TokenTree;
 
 typedef struct TokenBranch {
-	int variant;
+	TokenVariant variant;
 	union {
 		substr substr;
 		TokenTree subtree;

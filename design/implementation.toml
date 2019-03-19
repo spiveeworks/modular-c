@@ -80,3 +80,22 @@ field = type, identifier
 The parser will be an LL(1) parser, and will parse according to a grammar with
 the same structure as the AST.
 '''
+
+[SPC-conversion]
+partof = 'REQ-implementation'
+text = '''
+A full implementation of Modular C would allow for quite a few different
+patterns for rebinding functions and types, so the high level approach for
+converting modules into source files is as follows:
+
+1. create a table for each explicit function or type definition in the source
+files, with a native C AST that contains bindings to variables taken from
+module context, as well as an empty list of cross references
+(each reference is a list of indeces to entries in other lists...)
+2. somehow represent the flow of function/type bindings and/or apply
+substitutions to generate cross-references
+3. generate unique names for all concrete items
+4. generate headers for all concrete modules
+5. generate C source files for each .modc file, with definitions from lots of
+concrete modules in each
+'''

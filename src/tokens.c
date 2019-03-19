@@ -84,7 +84,7 @@ TokenTree tokenize_flat(char *input, int input_len) {
 
 	while (input < end) {
 		input = input + prefix_whitespace(input);
-		TokenVariant variant = ALPHANUM;
+		TokenVariant variant = T_ALPHANUM;
 		for (TokenVariant ti = 0; ti < UTOKEN_NUM; ti++) {
 			int len = prefix_token(input, &utokens[ti]);
 			if (len) {
@@ -98,7 +98,7 @@ TokenTree tokenize_flat(char *input, int input_len) {
 		result.branch_num++;
 
 		branch->variant = variant;
-		if (variant == ALPHANUM) {
+		if (variant == T_ALPHANUM) {
 			substr substr = next_token(input);
 			branch->data.substr = substr;
 			input += substr.len;
@@ -136,9 +136,9 @@ groupResult group_tokens_starting_from(
 		// increment before checking open brackets, so that we can recurse
 		remaining++;
 
-		if (variant >= FIRST_OPEN && variant <= LAST_OPEN) {
-			groupResult subtree =
-				group_tokens_starting_from(remaining, end, variant + TOTAL_OPENS);
+		if (variant >= T_FIRST_OPEN && variant <= T_LAST_OPEN) {
+			groupResult subtree = group_tokens_starting_from(remaining, end,
+					variant + T_TOTAL_OPENS);
 			out->data.subtree = subtree.tt;
 			remaining = subtree.remaining;
 		}
@@ -195,6 +195,3 @@ void test_tokenize() {
 	destroy_tt(tt);
 }
 
-int main() {
-	test_tokenize();
-}

@@ -11,24 +11,26 @@ typedef struct {
 } TokenDef;
 
 typedef enum {
-	ALPHANUM = -1,
-	OPEN_BRACE,
-	OPEN_PAREN,
-	OPEN_BRACK,
-	CLOSE_BRACE,
-	CLOSE_PAREN,
-	CLOSE_BRACK,
-	SEMICOLON,
-	STRUCT,
+	T_ALPHANUM = -1,
+	T_OPEN_BRACE,
+	T_OPEN_PAREN,
+	T_OPEN_BRACK,
+	T_CLOSE_BRACE,
+	T_CLOSE_PAREN,
+	T_CLOSE_BRACK,
+	T_SEMICOLON,
+	T_PUB,
+	T_OPEN,
+	T_STRUCT,
 
 	// number of possible tokens, not to be used as a variant...
 	UTOKEN_NUM,
 } TokenVariant;
 
-#define FIRST_OPEN OPEN_BRACE
-#define LAST_OPEN OPEN_BRACK
+#define T_FIRST_OPEN T_OPEN_BRACE
+#define T_LAST_OPEN T_OPEN_BRACK
 
-#define TOTAL_OPENS (LAST_OPEN - FIRST_OPEN)
+#define T_TOTAL_OPENS (T_LAST_OPEN - T_FIRST_OPEN)
 
 // value TokenDef utokens[UTOKEN_NUM] = 
 TokenDef utokens[UTOKEN_NUM] = {
@@ -40,6 +42,8 @@ TokenDef utokens[UTOKEN_NUM] = {
 	{"]", false},
 	{";", false},
 	{"struct", true},
+	{"pub", true},
+	{"open", true},
 };
 
 bool is_alphanum(char c) {
@@ -84,6 +88,8 @@ TokenTree new_tree(int max_branches);
 TokenTree tokenize_flat(char *input, int input_len);
 
 TokenTree group_tokens(TokenTree ts);
+
+char *render_token_tree(char*out, TokenTree in);
 
 void destroy_tt(TokenTree tt);
 

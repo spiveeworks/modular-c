@@ -158,10 +158,42 @@ TokenTree group_tokens(TokenTree ts) {
 	return tt.tt;
 }
 
+char *render_token_tree(char *out, TokenTree in) {
+	for (int i = 0; i < in.branch_num; i++) {
+		TokenBranch *branch = &in.branches[i];
+		switch(branch->variant) {
+			case T_ALPHANUM:
+				substr substr = branch->data.substr;
+				out = strncpy(out, substr.start, substr.len);
+				break;
+			case T_OPEN_BRACE:
+				break;
+			case T_OPEN_PAREN:
+				break;
+			case T_OPEN_BRACK:
+				break;
+			case T_CLOSE_BRACE:
+				break;
+			case T_CLOSE_PAREN:
+				break;
+			case T_CLOSE_BRACK:
+				break;
+			case T_SEMICOLON:
+				break;
+			case T_PUB:
+				break;
+			case T_OPEN:
+				break;
+			case T_STRUCT:
+				break;
+		}
+	}
+}
+
 void destroy_tt(TokenTree tt) {
 	for (int i = 0; i < tt.branch_num; i++) {
 		TokenBranch *branch = &tt.branches[i];
-		if (branch->variant != -1) {
+		if (branch->variant != T_ALPHANUM) {
 			destroy_tt(branch->data.subtree);
 		}
 	}
